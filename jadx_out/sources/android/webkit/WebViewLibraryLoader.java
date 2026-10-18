@@ -1,0 +1,262 @@
+package android.webkit;
+
+import android.app.ActivityManagerInternal;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.os.Build;
+import android.os.RemoteException;
+import android.os.SystemProperties;
+import android.text.TextUtils;
+import android.util.Log;
+import com.android.internal.annotations.VisibleForTesting;
+import com.android.server.LocalServices;
+import dalvik.system.VMRuntime;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+
+/* JADX INFO: loaded from: classes2.dex */
+@VisibleForTesting
+public class WebViewLibraryLoader {
+    private static final long CHROMIUM_WEBVIEW_DEFAULT_VMSIZE_BYTES = 104857600;
+    private static final String CHROMIUM_WEBVIEW_NATIVE_RELRO_32 = "/data/misc/shared_relro/libwebviewchromium32.relro";
+    private static final String CHROMIUM_WEBVIEW_NATIVE_RELRO_64 = "/data/misc/shared_relro/libwebviewchromium64.relro";
+    private static final boolean DEBUG = false;
+    private static final String LOGTAG = "WebViewLibraryLoader";
+    private static boolean sAddressSpaceReserved = false;
+
+    private static class RelroFileCreator {
+        private RelroFileCreator() {
+        }
+
+        public static void main(String[] strArr) {
+            boolean zIs64Bit = VMRuntime.getRuntime().is64Bit();
+            try {
+                if (strArr.length == 1 && strArr[0] != null) {
+                    Log.v(WebViewLibraryLoader.LOGTAG, "RelroFileCreator (64bit = " + zIs64Bit + "), lib: " + strArr[0]);
+                    if (!WebViewLibraryLoader.sAddressSpaceReserved) {
+                        Log.e(WebViewLibraryLoader.LOGTAG, "can't create relro file; address space not reserved");
+                        try {
+                            WebViewFactory.getUpdateServiceUnchecked().notifyRelroCreationCompleted();
+                        } catch (RemoteException e) {
+                            Log.e(WebViewLibraryLoader.LOGTAG, "error notifying update service", e);
+                        }
+                        Log.e(WebViewLibraryLoader.LOGTAG, "failed to create relro file");
+                        System.exit(0);
+                        return;
+                    }
+                    boolean zNativeCreateRelroFile = WebViewLibraryLoader.nativeCreateRelroFile(strArr[0], zIs64Bit ? WebViewLibraryLoader.CHROMIUM_WEBVIEW_NATIVE_RELRO_64 : WebViewLibraryLoader.CHROMIUM_WEBVIEW_NATIVE_RELRO_32);
+                    try {
+                        WebViewFactory.getUpdateServiceUnchecked().notifyRelroCreationCompleted();
+                    } catch (RemoteException e2) {
+                        Log.e(WebViewLibraryLoader.LOGTAG, "error notifying update service", e2);
+                    }
+                    if (!zNativeCreateRelroFile) {
+                        Log.e(WebViewLibraryLoader.LOGTAG, "failed to create relro file");
+                    }
+                    System.exit(0);
+                    return;
+                }
+                Log.e(WebViewLibraryLoader.LOGTAG, "Invalid RelroFileCreator args: " + Arrays.toString(strArr));
+                try {
+                    WebViewFactory.getUpdateServiceUnchecked().notifyRelroCreationCompleted();
+                } catch (RemoteException e3) {
+                    Log.e(WebViewLibraryLoader.LOGTAG, "error notifying update service", e3);
+                }
+                Log.e(WebViewLibraryLoader.LOGTAG, "failed to create relro file");
+                System.exit(0);
+            } catch (Throwable th) {
+                try {
+                    WebViewFactory.getUpdateServiceUnchecked().notifyRelroCreationCompleted();
+                } catch (RemoteException e4) {
+                    Log.e(WebViewLibraryLoader.LOGTAG, "error notifying update service", e4);
+                }
+                Log.e(WebViewLibraryLoader.LOGTAG, "failed to create relro file");
+                System.exit(0);
+                throw th;
+            }
+        }
+    }
+
+    @VisibleForTesting
+    public static class WebViewNativeLibrary {
+        public final String path;
+        public final long size;
+
+        WebViewNativeLibrary(String str, long j) {
+            this.path = str;
+            this.size = j;
+        }
+    }
+
+    static void createRelroFile(boolean z, WebViewNativeLibrary webViewNativeLibrary) {
+        final String str = z ? Build.SUPPORTED_64_BIT_ABIS[0] : Build.SUPPORTED_32_BIT_ABIS[0];
+        Runnable runnable = new Runnable() { // from class: android.webkit.WebViewLibraryLoader.1
+            @Override // java.lang.Runnable
+            public void run() {
+                try {
+                    Log.e(WebViewLibraryLoader.LOGTAG, "relro file creator for " + str + " crashed. Proceeding without");
+                    WebViewFactory.getUpdateService().notifyRelroCreationCompleted();
+                } catch (RemoteException e) {
+                    Log.e(WebViewLibraryLoader.LOGTAG, "Cannot reach WebViewUpdateService. " + e.getMessage());
+                }
+            }
+        };
+        if (webViewNativeLibrary != null) {
+            try {
+                if (webViewNativeLibrary.path != null) {
+                    if (!((ActivityManagerInternal) LocalServices.getService(ActivityManagerInternal.class)).startIsolatedProcess(RelroFileCreator.class.getName(), new String[]{webViewNativeLibrary.path}, "WebViewLoader-" + str, str, 1037, runnable)) {
+                        throw new Exception("Failed to start the relro file creator process");
+                    }
+                    return;
+                }
+            } catch (Throwable th) {
+                Log.e(LOGTAG, "error starting relro file creator for abi " + str, th);
+                runnable.run();
+                return;
+            }
+        }
+        throw new IllegalArgumentException("Native library paths to the WebView RelRo process must not be null!");
+    }
+
+    private static int createRelros(WebViewNativeLibrary webViewNativeLibrary, WebViewNativeLibrary webViewNativeLibrary2) {
+        int i = 0;
+        if (Build.SUPPORTED_32_BIT_ABIS.length > 0) {
+            if (webViewNativeLibrary == null) {
+                Log.e(LOGTAG, "No 32-bit WebView library path, skipping relro creation.");
+            } else {
+                createRelroFile(false, webViewNativeLibrary);
+                i = 1;
+            }
+        }
+        if (Build.SUPPORTED_64_BIT_ABIS.length <= 0) {
+            return i;
+        }
+        if (webViewNativeLibrary2 == null) {
+            Log.e(LOGTAG, "No 64-bit WebView library path, skipping relro creation.");
+            return i;
+        }
+        createRelroFile(true, webViewNativeLibrary2);
+        return i + 1;
+    }
+
+    private static WebViewNativeLibrary findNativeLibrary(ApplicationInfo applicationInfo, String str, String[] strArr, String str2) throws WebViewFactory.MissingWebViewPackageException {
+        if (TextUtils.isEmpty(str2)) {
+            return null;
+        }
+        String str3 = str2 + "/" + str;
+        File file = new File(str3);
+        return file.exists() ? new WebViewNativeLibrary(str3, file.length()) : getLoadFromApkPath(applicationInfo.sourceDir, strArr, str);
+    }
+
+    /* JADX WARN: Code duplicated, block: B:26:0x0069 A[Catch: IOException -> 0x006d, TryCatch #3 {IOException -> 0x006d, blocks: (B:2:0x0000, B:11:0x004e, B:13:0x0052, B:14:0x0055, B:22:0x0060, B:27:0x006c, B:26:0x0069, B:25:0x0065, B:4:0x0006, B:6:0x000a, B:8:0x002b, B:10:0x0031, B:20:0x005d), top: B:36:0x0000, inners: #1, #2 }] */
+    /* JADX WARN: Code duplicated, block: B:34:0x0060 A[EXC_TOP_SPLITTER, SYNTHETIC] */
+    private static WebViewNativeLibrary getLoadFromApkPath(String str, String[] strArr, String str2) throws WebViewFactory.MissingWebViewPackageException {
+        try {
+            ZipFile zipFile = new ZipFile(str);
+            Throwable th = null;
+            try {
+                try {
+                    for (String str3 : strArr) {
+                        String str4 = "lib/" + str3 + "/" + str2;
+                        ZipEntry entry = zipFile.getEntry(str4);
+                        if (entry != null && entry.getMethod() == 0) {
+                            WebViewNativeLibrary webViewNativeLibrary = new WebViewNativeLibrary(str + "!/" + str4, entry.getSize());
+                            zipFile.close();
+                            return webViewNativeLibrary;
+                        }
+                        if (th != null) {
+                            try {
+                                zipFile.close();
+                            } catch (Throwable th2) {
+                                th.addSuppressed(th2);
+                            }
+                        } else {
+                            zipFile.close();
+                        }
+                        throw th;
+                    }
+                    zipFile.close();
+                    return null;
+                } catch (Throwable th3) {
+                    th = th3;
+                    throw th;
+                }
+            } catch (Throwable th4) {
+                if (th != null) {
+                    zipFile.close();
+                } else {
+                    zipFile.close();
+                }
+                throw th4;
+            }
+        } catch (IOException e) {
+            throw new WebViewFactory.MissingWebViewPackageException(e);
+        }
+    }
+
+    @VisibleForTesting
+    public static WebViewNativeLibrary getWebViewNativeLibrary(PackageInfo packageInfo, boolean z) throws WebViewFactory.MissingWebViewPackageException {
+        ApplicationInfo applicationInfo = packageInfo.applicationInfo;
+        return findNativeLibrary(applicationInfo, WebViewFactory.getWebViewLibrary(applicationInfo), z ? Build.SUPPORTED_64_BIT_ABIS : Build.SUPPORTED_32_BIT_ABIS, getWebViewNativeLibraryDirectory(applicationInfo, z));
+    }
+
+    @VisibleForTesting
+    public static String getWebViewNativeLibraryDirectory(ApplicationInfo applicationInfo, boolean z) {
+        if (z == VMRuntime.is64BitAbi(applicationInfo.primaryCpuAbi)) {
+            return applicationInfo.nativeLibraryDir;
+        }
+        return !TextUtils.isEmpty(applicationInfo.secondaryCpuAbi) ? applicationInfo.secondaryNativeLibraryDir : "";
+    }
+
+    public static int loadNativeLibrary(ClassLoader classLoader, String str) {
+        if (!sAddressSpaceReserved) {
+            Log.e(LOGTAG, "can't load with relro file; address space not reserved");
+            return 2;
+        }
+        int iNativeLoadWithRelroFile = nativeLoadWithRelroFile(str, VMRuntime.getRuntime().is64Bit() ? CHROMIUM_WEBVIEW_NATIVE_RELRO_64 : CHROMIUM_WEBVIEW_NATIVE_RELRO_32, classLoader);
+        if (iNativeLoadWithRelroFile != 0) {
+            Log.w(LOGTAG, "failed to load with relro file, proceeding without");
+        }
+        return iNativeLoadWithRelroFile;
+    }
+
+    static native boolean nativeCreateRelroFile(String str, String str2);
+
+    static native int nativeLoadWithRelroFile(String str, String str2, ClassLoader classLoader);
+
+    static native boolean nativeReserveAddressSpace(long j);
+
+    static int prepareNativeLibraries(PackageInfo packageInfo) throws WebViewFactory.MissingWebViewPackageException {
+        WebViewNativeLibrary webViewNativeLibrary = getWebViewNativeLibrary(packageInfo, false);
+        WebViewNativeLibrary webViewNativeLibrary2 = getWebViewNativeLibrary(packageInfo, true);
+        updateWebViewZygoteVmSize(webViewNativeLibrary, webViewNativeLibrary2);
+        return createRelros(webViewNativeLibrary, webViewNativeLibrary2);
+    }
+
+    static void reserveAddressSpaceInZygote() {
+        System.loadLibrary("webviewchromium_loader");
+        long j = SystemProperties.getLong(WebViewFactory.CHROMIUM_WEBVIEW_VMSIZE_SIZE_PROPERTY, 104857600L);
+        sAddressSpaceReserved = nativeReserveAddressSpace(j);
+        if (sAddressSpaceReserved) {
+            return;
+        }
+        Log.e(LOGTAG, "reserving " + j + " bytes of address space failed");
+    }
+
+    private static void setWebViewZygoteVmSize(long j) {
+        SystemProperties.set(WebViewFactory.CHROMIUM_WEBVIEW_VMSIZE_SIZE_PROPERTY, Long.toString(j));
+    }
+
+    private static void updateWebViewZygoteVmSize(WebViewNativeLibrary webViewNativeLibrary, WebViewNativeLibrary webViewNativeLibrary2) throws WebViewFactory.MissingWebViewPackageException {
+        long jMax = webViewNativeLibrary != null ? Math.max(0L, webViewNativeLibrary.size) : 0L;
+        if (webViewNativeLibrary2 != null) {
+            jMax = Math.max(jMax, webViewNativeLibrary2.size);
+        }
+        long jMax2 = Math.max(jMax * 2, 104857600L);
+        Log.d(LOGTAG, "Setting new address space to " + jMax2);
+        setWebViewZygoteVmSize(jMax2);
+    }
+}

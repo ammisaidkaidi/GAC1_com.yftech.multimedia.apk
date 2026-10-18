@@ -1,0 +1,369 @@
+package com.yftech.libgallery.ui;
+
+import android.app.Application;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.BitmapRegionDecoder;
+import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.RectF;
+import android.graphics.drawable.Animatable;
+import android.media.ExifInterface;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.provider.Settings;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
+import com.facebook.common.util.UriUtil;
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.drawee.backends.pipeline.PipelineDraweeController;
+import com.facebook.drawee.controller.BaseControllerListener;
+import com.facebook.drawee.controller.ControllerListener;
+import com.facebook.imagepipeline.image.ImageInfo;
+import com.facebook.imagepipeline.request.ImageRequestBuilder;
+import com.media.common.util.AppConstants;
+import com.media.common.util.BaseApplication;
+import com.media.common.util.LogUtil;
+import com.media.common.util.SystemUtil;
+import com.media.common.util.ToastUtils;
+import com.yftech.libgallery.R;
+import com.yftech.libgallery.presenter.WallPaperSettingPresenter;
+import com.yftech.libgallery.view.ClipImageView;
+import com.yftech.libgallery.view.IWallPaperSettingFragmentView;
+import com.yftech.libmvpmodule.mvp.BaseMvpFragment;
+import com.yftech.libmvpmodule.utils.Constants;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Objects;
+
+/* JADX INFO: loaded from: classes4.dex */
+public class WallPaperSettingFragment extends BaseMvpFragment<WallPaperSettingPresenter> implements IWallPaperSettingFragmentView, View.OnClickListener {
+    private static final String ARG_PARAM1 = "imagePath";
+    private String imagePath;
+    private ClipImageView mClipImageView;
+    private int mDegree;
+    private String mOutput;
+    private int mSampleSize;
+    private int mSourceHeight;
+    private int mSourceWidth;
+    private TextView mTvConfirm;
+    private ImageView wallCardBg;
+    private int mMaxWidth = Constants.displayWidth;
+    private final int RC_RESULT_SUCCESSFUL = 10;
+    private final int RC_RESULT_FAILURE = 20;
+    private Handler mHandler = new Handler(Looper.getMainLooper()) { // from class: com.yftech.libgallery.ui.WallPaperSettingFragment.1
+        @Override // android.os.Handler
+        public void handleMessage(Message message) throws Throwable {
+            if (message.what != 10) {
+                if (message.what == 20) {
+                    ToastUtils.showFailMessage(WallPaperSettingFragment.this.getString(R.string.create_wall_fail), 1);
+                    return;
+                }
+                return;
+            }
+            ToastUtils.showNormalMessage(WallPaperSettingFragment.this.getString(R.string.create_wall_success), 1);
+            LogUtil.e("send wallpaper data, data is" + WallPaperSettingFragment.this.mOutput + "imagePath:" + WallPaperSettingFragment.this.imagePath);
+            Settings.Global.putString(WallPaperSettingFragment.this.getContext().getContentResolver(), AppConstants.WALLPAPER_ORIGINAL_PATH, WallPaperSettingFragment.this.imagePath);
+            Settings.Global.putString(WallPaperSettingFragment.this.getContext().getContentResolver(), AppConstants.WALLPAPER_MD5, SystemUtil.getFileMD5(WallPaperSettingFragment.this.imagePath));
+            Intent intent = new Intent(AppConstants.WallPaperSettingAction);
+            intent.putExtra(AppConstants.WallPaperSettingData, WallPaperSettingFragment.this.mOutput);
+            ((Context) Objects.requireNonNull(WallPaperSettingFragment.this.getContext())).sendBroadcast(intent);
+            if (WallPaperSettingFragment.this.getActivity() != null) {
+                WallPaperSettingFragment.this.getActivity().onBackPressed();
+            }
+        }
+    };
+    private final ControllerListener<ImageInfo> mControllerListener = new BaseControllerListener<ImageInfo>() { // from class: com.yftech.libgallery.ui.WallPaperSettingFragment.2
+        @Override // com.facebook.drawee.controller.BaseControllerListener, com.facebook.drawee.controller.ControllerListener
+        public void onFailure(String str, Throwable th) {
+            WallPaperSettingFragment.this.mTvConfirm.setEnabled(false);
+        }
+
+        @Override // com.facebook.drawee.controller.BaseControllerListener, com.facebook.drawee.controller.ControllerListener
+        public void onFinalImageSet(String str, @Nullable ImageInfo imageInfo, @Nullable Animatable animatable) {
+            super.onFinalImageSet(str, imageInfo, animatable);
+            if (imageInfo != null) {
+                WallPaperSettingFragment.this.mTvConfirm.setEnabled(true);
+            }
+        }
+
+        @Override // com.facebook.drawee.controller.BaseControllerListener, com.facebook.drawee.controller.ControllerListener
+        public void onSubmit(String str, Object obj) {
+            super.onSubmit(str, obj);
+            WallPaperSettingFragment.this.mTvConfirm.setEnabled(false);
+        }
+    };
+
+    private void clipImage() {
+        ToastUtils.showNormalMessage(getString(R.string.generating_wallpaper), 1);
+        FragmentActivity activity = getActivity();
+        if (activity != null) {
+            Application application = activity.getApplication();
+            if (application instanceof BaseApplication) {
+                ((BaseApplication) application).getFixedThreadPool().execute(new Runnable() { // from class: com.yftech.libgallery.ui.WallPaperSettingFragment.4
+                    /* JADX WARN: Code duplicated, block: B:31:0x005c A[EXC_TOP_SPLITTER, SYNTHETIC] */
+                    @Override // java.lang.Runnable
+                    public void run() throws Throwable {
+                        FileOutputStream fileOutputStream;
+                        FileNotFoundException e;
+                        try {
+                            try {
+                                fileOutputStream = new FileOutputStream(WallPaperSettingFragment.this.mOutput);
+                                try {
+                                    try {
+                                        Bitmap bitmapCreateClippedBitmap = WallPaperSettingFragment.this.createClippedBitmap();
+                                        bitmapCreateClippedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
+                                        WallPaperSettingFragment.this.mHandler.sendEmptyMessage(10);
+                                        if (!bitmapCreateClippedBitmap.isRecycled()) {
+                                            bitmapCreateClippedBitmap.recycle();
+                                        }
+                                        fileOutputStream.flush();
+                                        fileOutputStream.close();
+                                    } catch (FileNotFoundException e2) {
+                                        e = e2;
+                                        e.printStackTrace();
+                                        WallPaperSettingFragment.this.mHandler.sendEmptyMessage(20);
+                                        if (fileOutputStream == null) {
+                                            return;
+                                        }
+                                        fileOutputStream.flush();
+                                        fileOutputStream.close();
+                                    }
+                                } catch (Throwable th) {
+                                    th = th;
+                                    if (fileOutputStream != null) {
+                                        try {
+                                            fileOutputStream.flush();
+                                            fileOutputStream.close();
+                                        } catch (IOException e3) {
+                                            e3.printStackTrace();
+                                        }
+                                    }
+                                    throw th;
+                                }
+                            } catch (IOException e4) {
+                                e4.printStackTrace();
+                            }
+                        } catch (FileNotFoundException e5) {
+                            fileOutputStream = null;
+                            e = e5;
+                        } catch (Throwable th2) {
+                            th = th2;
+                            fileOutputStream = null;
+                            if (fileOutputStream != null) {
+                                fileOutputStream.flush();
+                                fileOutputStream.close();
+                            }
+                            throw th;
+                        }
+                    }
+                });
+            }
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public Bitmap createClippedBitmap() throws Throwable {
+        BitmapRegionDecoder bitmapRegionDecoderNewInstance;
+        if (this.mSampleSize <= 1) {
+            return this.mClipImageView.snapShotForViewGroup();
+        }
+        float[] clipMatrixValues = this.mClipImageView.getClipMatrixValues();
+        float f = clipMatrixValues[0];
+        float f2 = clipMatrixValues[2];
+        float f3 = clipMatrixValues[5];
+        Rect clipBorder = this.mClipImageView.getClipBorder();
+        float f4 = (((-f2) + clipBorder.left) / f) * this.mSampleSize;
+        float f5 = (((-f3) + clipBorder.top) / f) * this.mSampleSize;
+        float fWidth = (clipBorder.width() / f) * this.mSampleSize;
+        Rect realRect = getRealRect(new RectF(f4, f5, f4 + fWidth, ((clipBorder.height() / f) * this.mSampleSize) + f5));
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        Matrix matrix = new Matrix();
+        matrix.setRotate(this.mDegree);
+        if (this.mMaxWidth > 0 && fWidth > this.mMaxWidth) {
+            options.inSampleSize = findBestSample((int) fWidth, this.mMaxWidth);
+            float f6 = this.mMaxWidth / (fWidth / options.inSampleSize);
+            matrix.postScale(f6, f6);
+        }
+        BitmapRegionDecoder bitmapRegionDecoder = null;
+        try {
+            try {
+                bitmapRegionDecoderNewInstance = BitmapRegionDecoder.newInstance(this.imagePath, false);
+                try {
+                    Bitmap bitmapDecodeRegion = bitmapRegionDecoderNewInstance.decodeRegion(realRect, options);
+                    recycleImageViewBitmap();
+                    Bitmap bitmapCreateBitmap = Bitmap.createBitmap(bitmapDecodeRegion, 0, 0, bitmapDecodeRegion.getWidth(), bitmapDecodeRegion.getHeight(), matrix, false);
+                    if (bitmapRegionDecoderNewInstance != null && !bitmapRegionDecoderNewInstance.isRecycled()) {
+                        bitmapRegionDecoderNewInstance.recycle();
+                    }
+                    return bitmapCreateBitmap;
+                } catch (Exception unused) {
+                    bitmapRegionDecoder = bitmapRegionDecoderNewInstance;
+                    Bitmap bitmapSnapShotForViewGroup = this.mClipImageView.snapShotForViewGroup();
+                    if (bitmapRegionDecoder != null && !bitmapRegionDecoder.isRecycled()) {
+                        bitmapRegionDecoder.recycle();
+                    }
+                    return bitmapSnapShotForViewGroup;
+                } catch (Throwable th) {
+                    th = th;
+                    if (bitmapRegionDecoderNewInstance != null && !bitmapRegionDecoderNewInstance.isRecycled()) {
+                        bitmapRegionDecoderNewInstance.recycle();
+                    }
+                    throw th;
+                }
+            } catch (Throwable th2) {
+                th = th2;
+                bitmapRegionDecoderNewInstance = bitmapRegionDecoder;
+            }
+        } catch (Exception unused2) {
+        }
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public static int findBestSample(int i, int i2) {
+        int i3 = 1;
+        for (int i4 = i / 2; i4 > i2; i4 /= 2) {
+            i3 *= 2;
+        }
+        return i3;
+    }
+
+    private Rect getRealRect(RectF rectF) {
+        int i = this.mDegree;
+        if (i == 90) {
+            return new Rect((int) rectF.top, (int) (this.mSourceHeight - rectF.right), (int) rectF.bottom, (int) (this.mSourceHeight - rectF.left));
+        }
+        if (i != 180) {
+            return i != 270 ? new Rect((int) rectF.left, (int) rectF.top, (int) rectF.right, (int) rectF.bottom) : new Rect((int) (this.mSourceWidth - rectF.bottom), (int) rectF.left, (int) (this.mSourceWidth - rectF.top), (int) rectF.right);
+        }
+        return new Rect((int) (this.mSourceWidth - rectF.right), (int) (this.mSourceHeight - rectF.bottom), (int) (this.mSourceWidth - rectF.left), (int) (this.mSourceHeight - rectF.top));
+    }
+
+    public static WallPaperSettingFragment newInstance(String str) {
+        WallPaperSettingFragment wallPaperSettingFragment = new WallPaperSettingFragment();
+        Bundle bundle = new Bundle();
+        bundle.putString(ARG_PARAM1, str);
+        wallPaperSettingFragment.setArguments(bundle);
+        return wallPaperSettingFragment;
+    }
+
+    public static int readPictureDegree(String str) {
+        int i;
+        try {
+            int attributeInt = new ExifInterface(str).getAttributeInt("Orientation", 1);
+            if (attributeInt == 3) {
+                i = 180;
+            } else if (attributeInt == 6) {
+                i = 90;
+            } else {
+                if (attributeInt != 8) {
+                    return 0;
+                }
+                i = 270;
+            }
+            return i;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0;
+        }
+    }
+
+    private void recycleImageViewBitmap() {
+        this.mClipImageView.post(new Runnable() { // from class: com.yftech.libgallery.ui.WallPaperSettingFragment.5
+            @Override // java.lang.Runnable
+            public void run() {
+                WallPaperSettingFragment.this.mClipImageView.setImageBitmap(null);
+            }
+        });
+    }
+
+    private void setImageAndClipParams() {
+        this.mClipImageView.post(new Runnable() { // from class: com.yftech.libgallery.ui.WallPaperSettingFragment.3
+            @Override // java.lang.Runnable
+            public void run() {
+                WallPaperSettingFragment.this.mOutput = SystemUtil.getWallPaperOutputPath(WallPaperSettingFragment.this.getContext());
+                WallPaperSettingFragment.this.mClipImageView.setMaxOutputWidth(WallPaperSettingFragment.this.mMaxWidth);
+                WallPaperSettingFragment.this.mDegree = WallPaperSettingFragment.readPictureDegree(WallPaperSettingFragment.this.imagePath);
+                boolean z = WallPaperSettingFragment.this.mDegree == 90 || WallPaperSettingFragment.this.mDegree == 270;
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+                BitmapFactory.decodeFile(WallPaperSettingFragment.this.imagePath, options);
+                WallPaperSettingFragment.this.mSourceWidth = options.outWidth;
+                WallPaperSettingFragment.this.mSourceHeight = options.outHeight;
+                WallPaperSettingFragment.this.mSampleSize = WallPaperSettingFragment.findBestSample(z ? options.outHeight : options.outWidth, WallPaperSettingFragment.this.mClipImageView.getClipBorder().width());
+                options.inJustDecodeBounds = false;
+                options.inSampleSize = WallPaperSettingFragment.this.mSampleSize;
+                options.inPreferredConfig = Bitmap.Config.RGB_565;
+                Bitmap bitmapDecodeFile = BitmapFactory.decodeFile(WallPaperSettingFragment.this.imagePath, options);
+                if (WallPaperSettingFragment.this.mDegree != 0) {
+                    Matrix matrix = new Matrix();
+                    matrix.postRotate(WallPaperSettingFragment.this.mDegree);
+                    Bitmap bitmapCreateBitmap = Bitmap.createBitmap(bitmapDecodeFile, 0, 0, bitmapDecodeFile.getWidth(), bitmapDecodeFile.getHeight(), matrix, false);
+                    if (bitmapCreateBitmap != bitmapDecodeFile && !bitmapDecodeFile.isRecycled()) {
+                        bitmapDecodeFile.recycle();
+                    }
+                    bitmapDecodeFile = bitmapCreateBitmap;
+                }
+                WallPaperSettingFragment.this.mClipImageView.setImageBitmap(bitmapDecodeFile);
+                WallPaperSettingFragment.this.wallCardBg.setVisibility(0);
+            }
+        });
+    }
+
+    /* JADX INFO: Access modifiers changed from: protected */
+    @Override // com.yftech.libmvpmodule.mvp.BaseMvpFragment
+    public WallPaperSettingPresenter createPresenter() {
+        return null;
+    }
+
+    @Override // com.yftech.libmvpmodule.mvp.BaseMvpFragment
+    protected void initView(View view) {
+        this.mClipImageView = (ClipImageView) view.findViewById(R.id.clip_image_view);
+        this.mTvConfirm = (TextView) view.findViewById(R.id.btn_confirm);
+        this.mTvConfirm.setOnClickListener(this);
+        view.findViewById(R.id.btn_cancel).setOnClickListener(this);
+        this.wallCardBg = (ImageView) view.findViewById(R.id.wall_card_bg);
+        this.mClipImageView.setController((PipelineDraweeController) Fresco.newDraweeControllerBuilder().setImageRequest(ImageRequestBuilder.newBuilderWithSource(UriUtil.getUriForFile(new File(this.imagePath))).build()).setAutoPlayAnimations(true).setControllerListener(this.mControllerListener).build());
+        this.wallCardBg.setVisibility(0);
+        this.mOutput = SystemUtil.getWallPaperOutputPath(getContext());
+    }
+
+    @Override // com.yftech.libmvpmodule.mvp.BaseMvpFragment
+    protected View onBindView(LayoutInflater layoutInflater, @Nullable ViewGroup viewGroup, Bundle bundle) {
+        return layoutInflater.inflate(R.layout.fragment_wall_paper_setting, viewGroup, false);
+    }
+
+    @Override // android.view.View.OnClickListener
+    public void onClick(View view) {
+        if (SystemUtil.isFastDoubleClick()) {
+            return;
+        }
+        if (view.getId() == R.id.btn_confirm) {
+            clipImage();
+        } else {
+            if (view.getId() != R.id.btn_cancel || getActivity() == null) {
+                return;
+            }
+            getActivity().onBackPressed();
+        }
+    }
+
+    @Override // com.yftech.libmvpmodule.mvp.BaseMvpFragment, androidx.fragment.app.Fragment
+    public void onCreate(Bundle bundle) {
+        super.onCreate(bundle);
+        if (getArguments() != null) {
+            this.imagePath = getArguments().getString(ARG_PARAM1);
+        }
+    }
+}

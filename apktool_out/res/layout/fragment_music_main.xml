@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:textSize="@dimen/music_source_select_text_size" android:textColor="@color/colorFFFFFF" android:gravity="center" android:id="@id/tv_music_source" android:background="@drawable/music_btn_bg" android:layout_width="200.0px" android:layout_height="72.0px" android:layout_marginTop="50.0px" android:text="@string/music_source_selector" android:layout_marginStart="110.0px" />
+    <LinearLayout android:layout_gravity="start|center" android:orientation="vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="110.0px">
+        <TextView android:textSize="56.0px" android:textStyle="bold" android:textColor="@color/colorFFFFFF" android:gravity="center_vertical" android:layout_width="wrap_content" android:layout_height="74.0px" android:text="@string/music_welcome_title" />
+        <TextView android:textSize="36.0px" android:textColor="@color/colorB3FFFFFF" android:gravity="center_vertical" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8.0px" android:text="@string/music_welcome_subtitle" />
+    </LinearLayout>
+</FrameLayout>

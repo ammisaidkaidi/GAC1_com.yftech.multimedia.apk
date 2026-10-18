@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.media.common.ui.widget.FlowRadioGroup android:id="@id/rg" android:layout_width="200.0px" android:layout_height="72.0px" android:layoutDirection="ltr"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <FrameLayout android:background="@mipmap/radio_fm_switch_bg" android:layout_width="match_parent" android:layout_height="match_parent">
+        <View android:id="@id/v_selected" android:background="@mipmap/radio_fm_switch_btn" android:layout_width="110.0px" android:layout_height="match_parent" />
+        <RadioButton android:textSize="24.0px" android:textColor="@color/colorFFFFFF" android:gravity="center" android:layout_gravity="start" android:id="@id/rb_fm" android:layout_width="110.0px" android:layout_height="match_parent" android:checked="true" android:button="@null" android:text="FM" />
+        <RadioButton android:textSize="24.0px" android:textColor="@color/colorFFFFFF" android:gravity="center" android:layout_gravity="end" android:id="@id/rb_am" android:layout_width="110.0px" android:layout_height="match_parent" android:button="@null" android:text="AM" />
+    </FrameLayout>
+</com.media.common.ui.widget.FlowRadioGroup>

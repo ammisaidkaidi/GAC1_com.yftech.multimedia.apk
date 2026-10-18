@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <TextView android:textSize="36.0px" android:textColor="@android:color/white" android:gravity="center_vertical" android:id="@id/tv_item_date" android:paddingTop="18.0px" android:paddingBottom="18.0px" android:visibility="gone" android:layout_width="match_parent" android:layout_height="wrap_content" />
+    <LinearLayout android:orientation="vertical" android:id="@id/lin_list_item" android:visibility="gone" android:layout_width="match_parent" android:layout_height="wrap_content">
+        <FrameLayout android:id="@id/fl_viewed" android:padding="4.0px" android:layout_width="400.0px" android:layout_height="225.0px">
+            <com.media.common.ui.widget.SyncImageView android:layout_gravity="center" android:id="@id/iv_pic" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitCenter" android:adjustViewBounds="true" app:error="@mipmap/pv_vid_error1" app:placeHolder="@mipmap/pv_vid_error1" />
+            <TextView android:textSize="32.0px" android:textColor="@color/colorFFFFFF" android:gravity="center_horizontal" android:layout_gravity="bottom" android:id="@id/tv_tips" android:visibility="invisible" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="15.0px" android:text="@string/common_cannot_open" />
+        </FrameLayout>
+        <TextView android:textSize="26.0sp" android:textColor="@color/white" android:ellipsize="end" android:id="@id/tv_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8.0px" android:lines="1" android:layout_marginStart="5.0px" />
+        <TextView android:textSize="24.0px" android:textColor="@color/colorCBCBCB" android:id="@id/tv_duration" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginBottom="5.0px" android:layout_marginStart="5.0px" />
+    </LinearLayout>
+</FrameLayout>

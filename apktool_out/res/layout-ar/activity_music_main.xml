@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:orientation="vertical" android:id="@id/fl_main" android:background="@mipmap/music_main_bg_ar" android:fitsSystemWindows="true" android:layout_width="match_parent" android:layout_height="match_parent" android:splitMotionEvents="false"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:layout_gravity="end" android:id="@id/iv_playing" android:background="@drawable/music_play_status_anim" android:layout_width="1300.0px" android:layout_height="230.0px" android:layout_marginTop="245.0px" />
+    <ImageView android:layout_gravity="end" android:id="@id/iv_playing_extra" android:background="@drawable/music_play_status_anim_extra" android:layout_width="600.0px" android:layout_height="100.0px" android:layout_marginTop="480.0px" android:layout_marginEnd="185.0px" />
+    <ImageView android:layout_gravity="end" android:id="@id/iv_playing_extra_reflection" android:background="@mipmap/playing_extra_reflection" android:layout_width="600.0px" android:layout_height="100.0px" android:layout_marginTop="530.0px" android:layout_marginEnd="185.0px" />
+    <ImageView android:layout_gravity="end" android:id="@id/iv_album" android:layout_width="320.0px" android:layout_height="320.0px" android:layout_marginTop="150.0px" android:src="@mipmap/music_main_pic_cover" android:layout_marginEnd="320.0px" />
+    <ImageView android:layout_gravity="end" android:id="@id/iv_sound_effects" android:visibility="gone" android:layout_width="80.0px" android:layout_height="80.0px" android:layout_marginTop="82.0px" android:src="@drawable/music_dts_selector" android:layout_marginEnd="109.0px" />
+    <View android:id="@id/v_click" android:layout_width="match_parent" android:layout_height="match_parent" android:elevation="5.0px" />
+    <FrameLayout android:id="@id/fl_music" android:layout_width="match_parent" android:layout_height="match_parent" />
+</FrameLayout>

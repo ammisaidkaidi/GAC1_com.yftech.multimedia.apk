@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="100.0px" android:paddingStart="35.0px" android:paddingEnd="18.0px"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/iv_play" android:background="@drawable/music_playing" android:layout_width="40.0px" android:layout_height="40.0px" android:layout_centerVertical="true" android:layout_marginEnd="18.0px" />
+    <TextView android:textSize="30.0px" android:textColor="@color/colorE6FFFFFF" android:id="@id/tv_name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_centerVertical="true" android:fontFamily="@font/roboto_regular" android:layout_toEndOf="@id/iv_play" />
+    <View android:background="@color/color26CCDDFF" android:layout_width="460.0px" android:layout_height="2.0px" android:layout_alignParentBottom="true" android:layout_centerInParent="true" />
+</RelativeLayout>

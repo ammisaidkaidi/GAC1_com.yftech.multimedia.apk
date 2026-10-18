@@ -1,0 +1,70 @@
+package android.filterpacks.imageproc;
+
+import android.app.slice.SliceItem;
+import android.filterfw.core.Filter;
+import android.filterfw.core.FilterContext;
+import android.filterfw.core.Frame;
+import android.filterfw.core.FrameFormat;
+import android.filterfw.core.MutableFrameFormat;
+import android.filterfw.core.NativeProgram;
+import android.filterfw.core.Program;
+import android.filterfw.format.ImageFormat;
+
+/* JADX INFO: loaded from: classes.dex */
+public class ToRGBAFilter extends Filter {
+    private int mInputBPP;
+    private FrameFormat mLastFormat;
+    private Program mProgram;
+
+    public ToRGBAFilter(String str) {
+        super(str);
+        this.mLastFormat = null;
+    }
+
+    public void createProgram(FilterContext filterContext, FrameFormat frameFormat) {
+        this.mInputBPP = frameFormat.getBytesPerSample();
+        if (this.mLastFormat == null || this.mLastFormat.getBytesPerSample() != this.mInputBPP) {
+            this.mLastFormat = frameFormat;
+            int i = this.mInputBPP;
+            if (i == 1) {
+                this.mProgram = new NativeProgram("filterpack_imageproc", "gray_to_rgba");
+                return;
+            }
+            if (i == 3) {
+                this.mProgram = new NativeProgram("filterpack_imageproc", "rgb_to_rgba");
+                return;
+            }
+            throw new RuntimeException("Unsupported BytesPerPixel: " + this.mInputBPP + "!");
+        }
+    }
+
+    public FrameFormat getConvertedFormat(FrameFormat frameFormat) {
+        MutableFrameFormat mutableFrameFormatMutableCopy = frameFormat.mutableCopy();
+        mutableFrameFormatMutableCopy.setMetaValue(ImageFormat.COLORSPACE_KEY, 3);
+        mutableFrameFormatMutableCopy.setBytesPerSample(4);
+        return mutableFrameFormatMutableCopy;
+    }
+
+    @Override // android.filterfw.core.Filter
+    public FrameFormat getOutputFormat(String str, FrameFormat frameFormat) {
+        return getConvertedFormat(frameFormat);
+    }
+
+    @Override // android.filterfw.core.Filter
+    public void process(FilterContext filterContext) {
+        Frame framePullInput = pullInput(SliceItem.FORMAT_IMAGE);
+        createProgram(filterContext, framePullInput.getFormat());
+        Frame frameNewFrame = filterContext.getFrameManager().newFrame(getConvertedFormat(framePullInput.getFormat()));
+        this.mProgram.process(framePullInput, frameNewFrame);
+        pushOutput(SliceItem.FORMAT_IMAGE, frameNewFrame);
+        frameNewFrame.release();
+    }
+
+    @Override // android.filterfw.core.Filter
+    public void setupPorts() {
+        MutableFrameFormat mutableFrameFormat = new MutableFrameFormat(2, 2);
+        mutableFrameFormat.setDimensionCount(2);
+        addMaskedInputPort(SliceItem.FORMAT_IMAGE, mutableFrameFormat);
+        addOutputBasedOnInput(SliceItem.FORMAT_IMAGE, SliceItem.FORMAT_IMAGE);
+    }
+}

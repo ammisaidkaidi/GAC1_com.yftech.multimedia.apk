@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:background="@mipmap/music_cardlist_pic_bg" android:padding="22.0px" android:layout_width="580.0px" android:layout_height="696.0px"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout android:layout_width="match_parent" android:layout_height="90.0px" android:layout_marginBottom="0.0px">
+        <TextView android:textSize="36.0px" android:textStyle="bold" android:textColor="@color/colorFFFFFF" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/music_source_dialog_title" android:layout_centerVertical="true" android:layout_marginStart="20.0px" />
+        <ImageView android:id="@id/iv_close" android:layout_width="54.0px" android:layout_height="54.0px" android:src="@drawable/btn_close_selector" android:layout_centerVertical="true" android:layout_marginEnd="15.0px" android:layout_alignParentEnd="true" />
+    </RelativeLayout>
+    <View android:background="@color/color1ACCDDFF" android:layout_width="match_parent" android:layout_height="2.0px" android:layout_alignParentBottom="true" />
+    <androidx.recyclerview.widget.RecyclerView android:id="@id/rv" android:paddingBottom="15.0px" android:layout_width="match_parent" android:layout_height="match_parent" android:overScrollMode="never" />
+</LinearLayout>

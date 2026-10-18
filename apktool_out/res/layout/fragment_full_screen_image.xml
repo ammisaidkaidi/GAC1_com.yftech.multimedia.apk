@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:orientation="vertical" android:background="@android:color/black" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <com.media.common.ui.widget.MyActionBar android:id="@id/actionBar" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginStart="40.0px" android:elevation="5.0px" app:showLine="false" app:title="" />
+    <com.media.common.ui.widget.zoomable.ZoomableDraweeView android:id="@id/dv_image" android:layout_width="match_parent" android:layout_height="match_parent" app:actualImageScaleType="fitCenter" app:failureImage="@mipmap/pv_error_pic" app:failureImageScaleType="center" app:placeholderImage="@drawable/progress_loading" app:placeholderImageScaleType="center" />
+    <FrameLayout android:layout_gravity="center|bottom" android:id="@id/control_bar" android:background="@mipmap/bottom_mask" android:clickable="true" android:layout_width="match_parent" android:layout_height="145.0px">
+        <include android:layout_gravity="bottom" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="40.0px" layout="@layout/image_browse_function_bar" />
+    </FrameLayout>
+</FrameLayout>

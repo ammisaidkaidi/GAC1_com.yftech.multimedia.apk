@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:layout_width="match_parent" android:layout_height="wrap_content"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:textSize="36.0px" android:textStyle="bold" android:textColor="@color/color_title_default" android:ellipsize="end" android:gravity="start|center" android:id="@id/tv_actionbar_title" android:layout_width="match_parent" android:layout_height="80.0px" android:maxWidth="500.0px" android:text="Title" android:singleLine="true" style="@style/actionbar_title_drawable" />
+    <View android:id="@id/view_line" android:background="@color/color292C33" android:visibility="gone" android:layout_width="match_parent" android:layout_height="4.0px" />
+</LinearLayout>

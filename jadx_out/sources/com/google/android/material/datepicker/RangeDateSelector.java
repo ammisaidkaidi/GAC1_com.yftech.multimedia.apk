@@ -1,0 +1,246 @@
+package com.google.android.material.datepicker;
+
+import android.content.Context;
+import android.content.res.Resources;
+import android.net.wifi.WifiEnterpriseConfig;
+import android.os.Bundle;
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.util.DisplayMetrics;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RestrictTo;
+import androidx.core.util.Pair;
+import androidx.core.util.Preconditions;
+import com.google.android.material.R;
+import com.google.android.material.internal.ManufacturerUtils;
+import com.google.android.material.internal.ViewUtils;
+import com.google.android.material.resources.MaterialAttributes;
+import com.google.android.material.textfield.TextInputLayout;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+
+/* JADX INFO: loaded from: classes3.dex */
+@RestrictTo({RestrictTo.Scope.LIBRARY_GROUP})
+public class RangeDateSelector implements DateSelector<Pair<Long, Long>> {
+    public static final Parcelable.Creator<RangeDateSelector> CREATOR = new Parcelable.Creator<RangeDateSelector>() { // from class: com.google.android.material.datepicker.RangeDateSelector.3
+        /* JADX WARN: Can't rename method to resolve collision */
+        @Override // android.os.Parcelable.Creator
+        @NonNull
+        public RangeDateSelector createFromParcel(@NonNull Parcel parcel) {
+            RangeDateSelector rangeDateSelector = new RangeDateSelector();
+            rangeDateSelector.selectedStartItem = (Long) parcel.readValue(Long.class.getClassLoader());
+            rangeDateSelector.selectedEndItem = (Long) parcel.readValue(Long.class.getClassLoader());
+            return rangeDateSelector;
+        }
+
+        /* JADX WARN: Can't rename method to resolve collision */
+        @Override // android.os.Parcelable.Creator
+        @NonNull
+        public RangeDateSelector[] newArray(int i) {
+            return new RangeDateSelector[i];
+        }
+    };
+    private String invalidRangeStartError;
+    private final String invalidRangeEndError = WifiEnterpriseConfig.CA_CERT_ALIAS_DELIMITER;
+
+    @Nullable
+    private Long selectedStartItem = null;
+
+    @Nullable
+    private Long selectedEndItem = null;
+
+    @Nullable
+    private Long proposedTextStart = null;
+
+    @Nullable
+    private Long proposedTextEnd = null;
+
+    private void clearInvalidRange(@NonNull TextInputLayout textInputLayout, @NonNull TextInputLayout textInputLayout2) {
+        if (textInputLayout.getError() != null && this.invalidRangeStartError.contentEquals(textInputLayout.getError())) {
+            textInputLayout.setError(null);
+        }
+        if (textInputLayout2.getError() == null || !WifiEnterpriseConfig.CA_CERT_ALIAS_DELIMITER.contentEquals(textInputLayout2.getError())) {
+            return;
+        }
+        textInputLayout2.setError(null);
+    }
+
+    private boolean isValidRange(long j, long j2) {
+        return j <= j2;
+    }
+
+    private void setInvalidRange(@NonNull TextInputLayout textInputLayout, @NonNull TextInputLayout textInputLayout2) {
+        textInputLayout.setError(this.invalidRangeStartError);
+        textInputLayout2.setError(WifiEnterpriseConfig.CA_CERT_ALIAS_DELIMITER);
+    }
+
+    /* JADX INFO: Access modifiers changed from: private */
+    public void updateIfValidTextProposal(@NonNull TextInputLayout textInputLayout, @NonNull TextInputLayout textInputLayout2, @NonNull OnSelectionChangedListener<Pair<Long, Long>> onSelectionChangedListener) {
+        if (this.proposedTextStart == null || this.proposedTextEnd == null) {
+            clearInvalidRange(textInputLayout, textInputLayout2);
+            onSelectionChangedListener.onIncompleteSelectionChanged();
+        } else if (!isValidRange(this.proposedTextStart.longValue(), this.proposedTextEnd.longValue())) {
+            setInvalidRange(textInputLayout, textInputLayout2);
+            onSelectionChangedListener.onIncompleteSelectionChanged();
+        } else {
+            this.selectedStartItem = this.proposedTextStart;
+            this.selectedEndItem = this.proposedTextEnd;
+            onSelectionChangedListener.onSelectionChanged(getSelection());
+        }
+    }
+
+    @Override // android.os.Parcelable
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override // com.google.android.material.datepicker.DateSelector
+    public int getDefaultThemeResId(@NonNull Context context) {
+        Resources resources = context.getResources();
+        DisplayMetrics displayMetrics = resources.getDisplayMetrics();
+        return MaterialAttributes.resolveOrThrow(context, Math.min(displayMetrics.widthPixels, displayMetrics.heightPixels) > resources.getDimensionPixelSize(R.dimen.mtrl_calendar_maximum_default_fullscreen_minor_axis) ? R.attr.materialCalendarTheme : R.attr.materialCalendarFullscreenTheme, MaterialDatePicker.class.getCanonicalName());
+    }
+
+    @Override // com.google.android.material.datepicker.DateSelector
+    public int getDefaultTitleResId() {
+        return R.string.mtrl_picker_range_header_title;
+    }
+
+    @Override // com.google.android.material.datepicker.DateSelector
+    @NonNull
+    public Collection<Long> getSelectedDays() {
+        ArrayList arrayList = new ArrayList();
+        if (this.selectedStartItem != null) {
+            arrayList.add(this.selectedStartItem);
+        }
+        if (this.selectedEndItem != null) {
+            arrayList.add(this.selectedEndItem);
+        }
+        return arrayList;
+    }
+
+    @Override // com.google.android.material.datepicker.DateSelector
+    @NonNull
+    public Collection<Pair<Long, Long>> getSelectedRanges() {
+        if (this.selectedStartItem == null || this.selectedEndItem == null) {
+            return new ArrayList();
+        }
+        ArrayList arrayList = new ArrayList();
+        arrayList.add(new Pair(this.selectedStartItem, this.selectedEndItem));
+        return arrayList;
+    }
+
+    /* JADX WARN: Can't rename method to resolve collision */
+    @Override // com.google.android.material.datepicker.DateSelector
+    @NonNull
+    public Pair<Long, Long> getSelection() {
+        return new Pair<>(this.selectedStartItem, this.selectedEndItem);
+    }
+
+    @Override // com.google.android.material.datepicker.DateSelector
+    @NonNull
+    public String getSelectionDisplayString(@NonNull Context context) {
+        Resources resources = context.getResources();
+        if (this.selectedStartItem == null && this.selectedEndItem == null) {
+            return resources.getString(R.string.mtrl_picker_range_header_unselected);
+        }
+        if (this.selectedEndItem == null) {
+            return resources.getString(R.string.mtrl_picker_range_header_only_start_selected, DateStrings.getDateString(this.selectedStartItem.longValue()));
+        }
+        if (this.selectedStartItem == null) {
+            return resources.getString(R.string.mtrl_picker_range_header_only_end_selected, DateStrings.getDateString(this.selectedEndItem.longValue()));
+        }
+        Pair<String, String> dateRangeString = DateStrings.getDateRangeString(this.selectedStartItem, this.selectedEndItem);
+        return resources.getString(R.string.mtrl_picker_range_header_selected, dateRangeString.first, dateRangeString.second);
+    }
+
+    @Override // com.google.android.material.datepicker.DateSelector
+    public boolean isSelectionComplete() {
+        return (this.selectedStartItem == null || this.selectedEndItem == null || !isValidRange(this.selectedStartItem.longValue(), this.selectedEndItem.longValue())) ? false : true;
+    }
+
+    @Override // com.google.android.material.datepicker.DateSelector
+    public View onCreateTextInputView(@NonNull LayoutInflater layoutInflater, @Nullable ViewGroup viewGroup, @Nullable Bundle bundle, CalendarConstraints calendarConstraints, @NonNull final OnSelectionChangedListener<Pair<Long, Long>> onSelectionChangedListener) {
+        View viewInflate = layoutInflater.inflate(R.layout.mtrl_picker_text_input_date_range, viewGroup, false);
+        final TextInputLayout textInputLayout = (TextInputLayout) viewInflate.findViewById(R.id.mtrl_picker_text_input_range_start);
+        final TextInputLayout textInputLayout2 = (TextInputLayout) viewInflate.findViewById(R.id.mtrl_picker_text_input_range_end);
+        EditText editText = textInputLayout.getEditText();
+        EditText editText2 = textInputLayout2.getEditText();
+        if (ManufacturerUtils.isDateInputKeyboardMissingSeparatorCharacters()) {
+            editText.setInputType(17);
+            editText2.setInputType(17);
+        }
+        this.invalidRangeStartError = viewInflate.getResources().getString(R.string.mtrl_picker_invalid_range);
+        SimpleDateFormat textInputFormat = UtcDates.getTextInputFormat();
+        if (this.selectedStartItem != null) {
+            editText.setText(textInputFormat.format(this.selectedStartItem));
+            this.proposedTextStart = this.selectedStartItem;
+        }
+        if (this.selectedEndItem != null) {
+            editText2.setText(textInputFormat.format(this.selectedEndItem));
+            this.proposedTextEnd = this.selectedEndItem;
+        }
+        String textInputHint = UtcDates.getTextInputHint(viewInflate.getResources(), textInputFormat);
+        editText.addTextChangedListener(new DateFormatTextWatcher(textInputHint, textInputFormat, textInputLayout, calendarConstraints) { // from class: com.google.android.material.datepicker.RangeDateSelector.1
+            @Override // com.google.android.material.datepicker.DateFormatTextWatcher
+            void onInvalidDate() {
+                RangeDateSelector.this.proposedTextStart = null;
+                RangeDateSelector.this.updateIfValidTextProposal(textInputLayout, textInputLayout2, onSelectionChangedListener);
+            }
+
+            @Override // com.google.android.material.datepicker.DateFormatTextWatcher
+            void onValidDate(@Nullable Long l) {
+                RangeDateSelector.this.proposedTextStart = l;
+                RangeDateSelector.this.updateIfValidTextProposal(textInputLayout, textInputLayout2, onSelectionChangedListener);
+            }
+        });
+        editText2.addTextChangedListener(new DateFormatTextWatcher(textInputHint, textInputFormat, textInputLayout2, calendarConstraints) { // from class: com.google.android.material.datepicker.RangeDateSelector.2
+            @Override // com.google.android.material.datepicker.DateFormatTextWatcher
+            void onInvalidDate() {
+                RangeDateSelector.this.proposedTextEnd = null;
+                RangeDateSelector.this.updateIfValidTextProposal(textInputLayout, textInputLayout2, onSelectionChangedListener);
+            }
+
+            @Override // com.google.android.material.datepicker.DateFormatTextWatcher
+            void onValidDate(@Nullable Long l) {
+                RangeDateSelector.this.proposedTextEnd = l;
+                RangeDateSelector.this.updateIfValidTextProposal(textInputLayout, textInputLayout2, onSelectionChangedListener);
+            }
+        });
+        ViewUtils.requestFocusAndShowKeyboard(editText);
+        return viewInflate;
+    }
+
+    @Override // com.google.android.material.datepicker.DateSelector
+    public void select(long j) {
+        if (this.selectedStartItem == null) {
+            this.selectedStartItem = Long.valueOf(j);
+        } else if (this.selectedEndItem == null && isValidRange(this.selectedStartItem.longValue(), j)) {
+            this.selectedEndItem = Long.valueOf(j);
+        } else {
+            this.selectedEndItem = null;
+            this.selectedStartItem = Long.valueOf(j);
+        }
+    }
+
+    @Override // com.google.android.material.datepicker.DateSelector
+    public void setSelection(@NonNull Pair<Long, Long> pair) {
+        if (pair.first != null && pair.second != null) {
+            Preconditions.checkArgument(isValidRange(pair.first.longValue(), pair.second.longValue()));
+        }
+        this.selectedStartItem = pair.first == null ? null : Long.valueOf(UtcDates.canonicalYearMonthDay(pair.first.longValue()));
+        this.selectedEndItem = pair.second != null ? Long.valueOf(UtcDates.canonicalYearMonthDay(pair.second.longValue())) : null;
+    }
+
+    @Override // android.os.Parcelable
+    public void writeToParcel(@NonNull Parcel parcel, int i) {
+        parcel.writeValue(this.selectedStartItem);
+        parcel.writeValue(this.selectedEndItem);
+    }
+}

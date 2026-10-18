@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent" android:layout_height="82.0px"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <View android:background="@color/color1ACCDDFF" android:layout_width="wrap_content" android:layout_height="2.0px" android:layout_centerVertical="true" android:layout_toStartOf="@id/tv_tag" />
+    <TextView android:textSize="22.0px" android:textColor="@color/colorB3FFFFFF" android:gravity="center" android:id="@id/tv_tag" android:layout_width="148.0px" android:layout_height="wrap_content" android:text="@string/music_source_by_third_party_application" android:layout_centerInParent="true" />
+    <View android:background="@color/color1ACCDDFF" android:layout_width="wrap_content" android:layout_height="2.0px" android:layout_centerVertical="true" android:layout_toEndOf="@id/tv_tag" />
+</RelativeLayout>

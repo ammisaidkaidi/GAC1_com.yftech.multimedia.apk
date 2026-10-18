@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:height="100.0px" android:width="100.0px">
+        <shape>
+            <solid android:color="@color/transparent" />
+        </shape>
+    </item>
+    <item android:gravity="center" android:height="100.0px" android:width="100.0px">
+        <bitmap android:src="@mipmap/pv_video_sel" />
+    </item>
+</layer-list>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:background="@drawable/pic_dialog_bg" android:padding="22.0px" android:layout_width="858.0px" android:layout_height="372.0px"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView android:id="@id/iv_tag" android:visibility="gone" android:layout_width="120.0px" android:layout_height="120.0px" android:layout_marginTop="22.0px" android:src="@mipmap/radio_icon_not_received" android:layout_centerHorizontal="true" />
+    <ProgressBar android:id="@id/pb_loading" android:layout_width="120.0px" android:layout_height="120.0px" android:layout_marginTop="30.0px" android:indeterminateDrawable="@drawable/progress_loading" android:indeterminateDuration="200" android:layout_centerHorizontal="true" />
+    <TextView android:textSize="32.0px" android:textColor="@color/colorFFFFFF" android:gravity="center" android:id="@id/tv_content" android:layout_width="match_parent" android:layout_height="46.0px" android:text="@string/radio_channel_search_dialog_search_fail_tips" android:layout_below="@id/pb_loading" />
+    <View android:id="@id/v_line" android:background="@color/color26CCDDFF" android:layout_width="match_parent" android:layout_height="2.0px" android:layout_above="@id/tv_control" />
+    <TextView android:textSize="32.0px" android:textColor="@color/colorFFFFFF" android:gravity="center" android:id="@id/tv_control" android:background="@drawable/selector_dialog_one_btn_bg" android:layout_width="match_parent" android:layout_height="100.0px" android:text="@string/radio_loading_common_cancel" android:layout_alignParentBottom="true" />
+    <RelativeLayout android:id="@id/rl_result" android:visibility="gone" android:layout_width="match_parent" android:layout_height="100.0px" android:layout_alignParentBottom="true">
+        <TextView android:textSize="32.0px" android:textColor="@color/colorFFFFFF" android:gravity="center" android:id="@id/tv_retry" android:background="@drawable/selector_dialog_left_btn_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:text="@string/radio_loading_common_retry" android:layout_toStartOf="@id/v_drive" />
+        <View android:id="@id/v_drive" android:background="@color/color26CCDDFF" android:layout_width="2.0px" android:layout_height="match_parent" android:layout_centerInParent="true" />
+        <TextView android:textSize="32.0px" android:textColor="@color/colorB3FFFFFF" android:gravity="center" android:id="@id/tv_cancel" android:background="@drawable/selector_dialog_right_btn_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:text="@string/radio_loading_common_cancel" android:layout_toEndOf="@id/v_drive" />
+    </RelativeLayout>
+</RelativeLayout>

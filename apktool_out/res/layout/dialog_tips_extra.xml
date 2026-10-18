@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout android:orientation="vertical" android:background="@drawable/pic_dialog_bg" android:padding="22.0px" android:layout_width="740.0px" android:layout_height="262.0px"
+  xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:textSize="28.0px" android:textColor="@color/colorFFFFFF" android:gravity="center" android:id="@id/tv_content" android:layout_width="match_parent" android:layout_height="136.0px" android:text="@string/common_confirm" />
+    <View android:background="@color/color26CCDDFF" android:layout_width="match_parent" android:layout_height="2.0px" />
+    <LinearLayout android:orientation="horizontal" android:layout_width="match_parent" android:layout_height="match_parent">
+        <TextView android:textSize="28.0px" android:textColor="@color/colorCCCCDDFF" android:gravity="center" android:id="@id/tv_confirm" android:background="@drawable/btn_tips_dialog_left_for_multiple" android:layout_width="0.0px" android:layout_height="match_parent" android:text="@string/common_confirm" android:layout_weight="1.0" />
+        <View android:background="@color/color26CCDDFF" android:layout_width="2.0px" android:layout_height="match_parent" />
+        <TextView android:textSize="28.0px" android:textColor="@color/colorCCCCDDFF" android:gravity="center" android:id="@id/tv_cancel" android:background="@drawable/btn_tips_dialog_right_for_multiple" android:layout_width="0.0px" android:layout_height="match_parent" android:text="@string/common_cancel" android:layout_weight="1.0" />
+    </LinearLayout>
+</LinearLayout>

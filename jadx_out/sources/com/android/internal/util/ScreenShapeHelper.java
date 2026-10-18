@@ -1,0 +1,14 @@
+package com.android.internal.util;
+
+import android.content.res.Resources;
+import android.os.Build;
+import android.os.SystemProperties;
+import android.view.ViewRootImpl;
+import com.android.internal.R;
+
+/* JADX INFO: loaded from: classes3.dex */
+public class ScreenShapeHelper {
+    public static int getWindowOutsetBottomPx(Resources resources) {
+        return Build.IS_EMULATOR ? SystemProperties.getInt(ViewRootImpl.PROPERTY_EMULATOR_WIN_OUTSET_BOTTOM_PX, 0) : resources.getInteger(R.integer.config_windowOutsetBottom);
+    }
+}

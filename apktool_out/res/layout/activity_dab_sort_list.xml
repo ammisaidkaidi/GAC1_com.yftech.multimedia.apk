@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:background="@mipmap/pic_bg2" android:layout_width="match_parent" android:layout_height="match_parent"
+  xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <FrameLayout android:id="@id/fragment_group_dab_list" android:layout_width="match_parent" android:layout_height="match_parent" android:layout_marginTop="80.0px" />
+    <RelativeLayout android:id="@id/layout_dab_search" android:background="@mipmap/btn_change_bg" android:layout_width="wrap_content" android:layout_height="53.0px" android:layout_marginTop="14.0px" android:minWidth="200.0px" android:layout_marginEnd="485.0px" android:layout_alignParentEnd="true">
+        <TextView android:textSize="28.0px" android:textColor="@color/colorB3FFFFFF" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/radio_channel_search_dialog_title" android:layout_centerInParent="true" android:drawableStart="@mipmap/icon_change" />
+    </RelativeLayout>
+    <View android:background="@color/color1ACCDDFF" android:layout_width="1636.0px" android:layout_height="3.0dp" android:layout_marginTop="77.0px" android:layout_alignBottom="@id/tab_dab_list" android:layout_marginStart="180.0px" />
+    <RadioGroup android:orientation="horizontal" android:id="@id/tab_dab_list" android:layout_width="wrap_content" android:layout_height="80.0px" android:layout_marginStart="180.0px" app:layout_constraintLeft_toLeftOf="parent" app:layout_constraintTop_toTopOf="parent">
+        <RadioButton android:textSize="@dimen/dab_list_title_size" android:textColor="@color/colorFFFFFF" android:gravity="center" android:id="@id/rb_dab_all_station" android:background="@drawable/ic_tab_s" android:layout_width="240.0px" android:layout_height="match_parent" android:checked="false" android:button="@null" android:text="@string/dab_tab_title_all_station" />
+        <RadioButton android:textSize="@dimen/dab_list_title_size" android:textColor="@color/colorFFFFFF" android:gravity="center" android:id="@id/rb_dab_station_list" android:background="@drawable/ic_tab_s" android:layout_width="240.0px" android:layout_height="match_parent" android:button="@null" android:text="@string/dab_tab_title_station_list" />
+        <RadioButton android:textSize="@dimen/dab_list_title_size" android:textColor="@color/colorFFFFFF" android:gravity="center" android:id="@id/rb_dab_sort_station_list" android:background="@drawable/ic_tab_s" android:layout_width="240.0px" android:layout_height="match_parent" android:button="@null" android:text="@string/dab_tab_title_station_sort_list" />
+    </RadioGroup>
+</RelativeLayout>
